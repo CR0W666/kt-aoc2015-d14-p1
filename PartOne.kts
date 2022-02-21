@@ -13,14 +13,23 @@ val INPUT: String = "Rudolph can fly 22 km/s for 8 seconds, but then must rest f
 class Reindeer(val name: String, val maxSpeed: Int, val flightTime: Int, val restTime: Int) {
     
     fun distanceTraveledIn(seconds: Int): Int {
-        var dist: Int = 0
-        var secsPast: Int = 0
-        for (iter: Int in 1..seconds) {
-            if(iter < secsPast) continue
-            if(secsPast > flightTime) secsPast += restTime
-            dist += maxSpeed
+        var dist: Int = 0 
+		var flying: Int = flightTime
+		var resting: Int = restTime
+        
+        for(i in 0 until seconds) {
+            if(flying > 0) {
+                dist += maxSpeed
+                flying--
+            } else {
+                resting--
+                if(restTime == 0) {
+                    flying = flightTime
+                    resting = restTime
+                }
+            }
         }
-
+        
         return dist
     }
 
@@ -29,23 +38,28 @@ class Reindeer(val name: String, val maxSpeed: Int, val flightTime: Int, val res
 fun main() {
     val reindeers: List<Reindeer> = createReindeers()
     val times: MutableMap<Reindeer, Int> = race(reindeers)
+    val winner = times.maxByOrNull { it.value }
 
-
+	println("Winner: ${winner!!.key.name} - ${winner!!.value} km")
+	
 }
 
 fun createReindeers(): List<Reindeer> {
-    var clean = INPUT.split("\n").forEach {
+    val reindeers: MutableList<Reindeer> = mutableListOf<Reindeer>()
+	
+    INPUT.split("\n").forEach {
         val name: String = it.split(" ")[0]
-        val dataa = INPUT.replace("[^0-9 ]".toRegex(), " ").split(" ").filterNot {it.chars().toArray().asList().contains(' ')}.asSequence().toList()
-        println(dataa)
+        val stats = it.replace("[^0-9 ]".toRegex(), " ").split(" ").map { it.toIntOrNull() }.filterNotNull()
+        
+    	reindeers.add(Reindeer(name, stats[0], stats[1], stats[2]))
     }
-    var reindeers: MutableList<Reindeer> = mutableListOf<Reindeer>()
-    return listOf(Reindeer("temp", 22, 6, 50))
+    
+    return reindeers
 }
 
 fun race(reindeers: List<Reindeer>): MutableMap<Reindeer, Int> {
     val times: MutableMap<Reindeer, Int> = mutableMapOf<Reindeer, Int>()
-    for(reindeer: Reindeer in reindeers) times[reindeer] = reindeer.distanceTraveledIn(2503)
+    
+    reindeers.forEach { times[it] = it.distanceTraveledIn(2503) }
     return times
 }
-
